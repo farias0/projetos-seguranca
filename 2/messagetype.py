@@ -6,13 +6,13 @@ class MessageType(Enum):
     SYM_KEY_EXCHANGE = 2
     NORMAL = 3
 
-    def serialize(self):
-        '''transforms a MessageType enum in a 1-byte string to be appended to messages'''
+    def serialize(self) -> str:
+        '''Transforms a MessageType enum in a 1-byte string to be appended to messages'''
         return self.value.to_bytes(1, byteorder='big')
 
     @classmethod
-    def deserialize(self, byte_value):
-        '''returns the MessageType from a serialized byte string'''
+    def deserialize(self, byte_value: str) -> 'MessageType':
+        '''Returns the MessageType from a serialized byte string'''
         value = int.from_bytes(byte_value, byteorder='big')
         for type in MessageType:
             if type.value == value:
