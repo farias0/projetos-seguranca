@@ -2,8 +2,8 @@ from enum import Enum, unique
 
 @unique
 class MessageType(Enum):
-    PUB_KEY_EXCHANGE = 1 # distinguish between from_client vs from_server?
-    SYM_KEY_EXCHANGE = 2
+    PUB_KEY_EXCHANGE = 1 # used by the client & server
+    SYM_KEY_EXCHANGE = 2  # used by the server only
     NORMAL = 3
 
     def serialize(self) -> bytes:

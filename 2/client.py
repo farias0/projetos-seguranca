@@ -11,11 +11,55 @@ import traceback
 import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+from message import Message
+from messagetype import MessageType
+
 # >> chave secreta
 KEY = b'\xf2pz\x06)O\x13\x8e\x9c\xd9\x94\xd8\n\x98u\xbfB\xb8\xf4*\xe4\x04e\xe5\xf9l,\x87\xf3d\x88\x99'
 
 # >> tamanho do vetor de inicialização, em bytes
 IV_SIZE = 16
+
+class Keys:
+    pvt_key = '', # TODO generate
+    pub_key = '', # TODO generate
+    sym_key = None,
+    srv_pub_key = None
+
+def initiate_handshake():
+    msg = Message(MessageType.PUB_KEY_EXCHANGE, Keys.pub_key)
+    # send msg.serialize()
+    return
+
+def send_msg(content: str):
+    if Keys.sym_key == None:
+        # print "connecting to server..."
+        # do handshake again?
+        return
+
+    encrypted_content = '' # TODO encrypt with sym_key
+    msg = Message(MessageType.NORMAL, encrypted_content)
+    # send msg.serialize()
+    return
+
+def proccess_income_msg(msg_bytes: bytes):
+    msg = Message.deserialize(msg_bytes)
+    try:
+        match msg.type:
+            case MessageType.PUB_KEY_EXCHANGE:
+                Keys.srv_pub_key = msg.content
+                return
+            case MessageType.SYM_KEY_EXCHANGE:
+                Keys.sym_key = '' # TODO decrypt it with the srv_pub_key && pvt_key (which order??)
+                return
+            case MessageType.NORMAL:
+                content = '' # TODO decrypt it with the sym_key
+                # show
+                return
+    except:
+        initiate_handshake()
+
+
 
 # >> o tamanho da mensagem passada tem que ser multiplo de 128 (AES). essa função "enche linguiça"
 def fill_msg_length(msg):
