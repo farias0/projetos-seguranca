@@ -13,6 +13,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from message import Message
 from messagetype import MessageType
+from rsa import RSA
+from aes import AES
 
 # >> chave secreta
 KEY = b'\xf2pz\x06)O\x13\x8e\x9c\xd9\x94\xd8\n\x98u\xbfB\xb8\xf4*\xe4\x04e\xe5\xf9l,\x87\xf3d\x88\x99'
@@ -21,23 +23,22 @@ KEY = b'\xf2pz\x06)O\x13\x8e\x9c\xd9\x94\xd8\n\x98u\xbfB\xb8\xf4*\xe4\x04e\xe5\x
 IV_SIZE = 16
 
 class Keys:
-    pvt_key = '', # TODO generate
-    pub_key = '', # TODO generate
+    asym = RSA.gen_keys()
     sym_key = None,
     srv_pub_key = None
 
 def initiate_handshake():
-    msg = Message(MessageType.PUB_KEY_EXCHANGE, Keys.pub_key)
+    msg = Message(MessageType.PUB_KEY_EXCHANGE, Keys.asym.pub)
     # send msg.serialize()
     return
 
 def send_msg(content: str):
     if Keys.sym_key == None:
         # print "connecting to server..."
-        # do handshake again?
+        initiate_handshake()
         return
 
-    encrypted_content = '' # TODO encrypt with sym_key
+    encrypted_content = RSA.encrypt(content.encode(), Keys.asym.pub)
     msg = Message(MessageType.NORMAL, encrypted_content)
     # send msg.serialize()
     return
@@ -46,14 +47,17 @@ def proccess_income_msg(msg_bytes: bytes):
     msg = Message.deserialize(msg_bytes)
     try:
         match msg.type:
+            case MessageType.ASK_FOR_PUB_KEY:
+                initiate_handshake()
+                return
             case MessageType.PUB_KEY_EXCHANGE:
                 Keys.srv_pub_key = msg.content
                 return
             case MessageType.SYM_KEY_EXCHANGE:
-                Keys.sym_key = '' # TODO decrypt it with the srv_pub_key && pvt_key (which order??)
+                Keys.sym_key = RSA.verify_and_extract(RSA.decrypt(msg_bytes, Keys.asym.pvt), Keys.srv_pub_key)
                 return
             case MessageType.NORMAL:
-                content = '' # TODO decrypt it with the sym_key
+                content = AES.decrypt(msg_bytes, Keys.sym_key)
                 # show
                 return
     except:

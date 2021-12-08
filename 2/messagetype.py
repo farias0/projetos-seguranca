@@ -2,6 +2,7 @@ from enum import Enum, unique
 
 @unique
 class MessageType(Enum):
+    ASK_FOR_PUB_KEY = 0 # used by server in case of error
     PUB_KEY_EXCHANGE = 1 # used by the client & server
     SYM_KEY_EXCHANGE = 2  # used by the server only
     NORMAL = 3

@@ -8,6 +8,8 @@ import select
 
 from message import Message
 from messagetype import MessageType
+from aes import AES
+from rsa import RSA
 
 SOCKET_LIST = []
 TO_BE_SENT = []
@@ -22,8 +24,7 @@ class KeySet:
 
 class Keys:
 
-    pvt_key = '' # TODO generate
-    pub_key = '' # TODO generate
+    asym = RSA.gen_keys()
     __CLIENTS_SETS = {} # a dict of {ip, KeySet}
 
     @classmethod
@@ -43,27 +44,28 @@ class Keys:
 
 
 def do_handshake(ip: str, pub_key: str): # TODO
-    pub_key_msg = Message(MessageType.PUB_KEY_EXCHANGE, Keys.pub_key)
+    pub_key_msg = Message(MessageType.PUB_KEY_EXCHANGE, Keys.asym.pub)
     # send pub_key_msg.serialize()
 
-    sym_key = '' # TODO generate
+    sym_key = AES.gen_key()
     Keys.setForIp(ip, KeySet(pub_key, sym_key))
 
-    encrypted_sym_key = '' # TODO encrypt it with the server's pvt_key & the client's pub_key (which order??)
+    encrypted_sym_key = RSA.encrypt(RSA.sign(sym_key, Keys.asym.pvt), pub_key)
     sym_key_msg = Message(MessageType.SYM_KEY_EXCHANGE, encrypted_sym_key)
     # send sym_key_msg.serialize()
 
     return
 
 def route_msg(from_ip: str, content: str):
-    content = '' # TODO decrypt it with from_ip's sym_key
     # TODO loop through connected clients
-        # warp code bellow in try except, with do_handshake if fails
-
+    try:
         # if ip !== from_ip:
         # msg = Message(MessageType.NORMAL, content)
         # send msg.serialize()
-    return
+        return
+    except:
+        # send msg type=ASK_FOR_PUB_KEY
+        return
 
 def proccess_income_msg(from_ip: str, msg_bytes: bytes):
     msg = Message.deserialize(msg_bytes)
@@ -72,7 +74,7 @@ def proccess_income_msg(from_ip: str, msg_bytes: bytes):
             do_handshake(from_ip, msg.content)
             return
         case MessageType.NORMAL:
-            route_msg(from_ip, '') # TODO decrypt msg.content with from_ip sym key
+            route_msg(from_ip, AES.decrypt(msg_bytes, Keys.getForIp(from_ip).sym))
             return
 
 
