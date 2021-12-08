@@ -9,7 +9,7 @@ class AES:
 
     @classmethod
     def gen_key(cls) -> bytes:
-        '''Generates a AES (symmetric) key'''
+        '''Generates an AES (symmetric) key'''
         return os.urandom(cls.__KEY_LEN)
 
     @classmethod
@@ -23,7 +23,7 @@ class AES:
 
     @classmethod
     def decrypt(cls, chunk: bytes, key: bytes) -> bytes:
-        '''Decrypts a message using a AES key'''
+        '''Decrypts a message using an AES key'''
         iv = chunk[:cls.__IV_LEN]
         encrypted_msg = chunk[cls.__IV_LEN:]
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv))

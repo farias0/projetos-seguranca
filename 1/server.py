@@ -28,22 +28,27 @@ class Server(threading.Thread):
             read, write, err = select.select(SOCKET_LIST, [], [], 0)
             for sock in read:
                 if sock == self.sock:
+                    print('-> BRANCH A') # new connections
                     sockfd, addr = self.sock.accept()
-                    print(str(addr))
+                    print(str(addr)) # tupla id + porta
 
                     SOCKET_LIST.append(sockfd)
                     print(SOCKET_LIST[len(SOCKET_LIST) - 1])
 
                 else:
+                    print('-> BRANCH B') # incoming messages
                     try:
                         s = sock.recv(1024)
                         if s == '':
+                            print('-> BRANCH B1')
                             print(str(sock.getpeername()))
                             continue
-                        else:
+                        else: # incoming messages always end up here
+                            print('-> BRANCH B2')
                             TO_BE_SENT.append(s)
                             SENT_BY[s] = (str(sock.getpeername()))
                     except:
+                        print('-> BRANCH B EXCEPT')
                         print(str(sock.getpeername()))
 
 
@@ -52,8 +57,9 @@ class handle_connections(threading.Thread):
         while 1:
             read, write, err = select.select([], SOCKET_LIST, [], 0)
             for items in TO_BE_SENT:
-                for s in write:
+                for s in write: # loop through connected clients
                     try:
+                        print(type(s))
                         if (str(s.getpeername()) == SENT_BY[items]):
                             print("Ignoring %s" % (str(s.getpeername())))
                             continue

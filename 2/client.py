@@ -16,81 +16,13 @@ from messagetype import MessageType
 from rsa import RSA
 from aes import AES
 
-# >> chave secreta
-KEY = b'\xf2pz\x06)O\x13\x8e\x9c\xd9\x94\xd8\n\x98u\xbfB\xb8\xf4*\xe4\x04e\xe5\xf9l,\x87\xf3d\x88\x99'
-
-# >> tamanho do vetor de inicialização, em bytes
-IV_SIZE = 16
-
-class Keys:
-    asym = RSA.gen_keys()
-    sym_key = None,
-    srv_pub_key = None
-
-def initiate_handshake():
-    msg = Message(MessageType.PUB_KEY_EXCHANGE, Keys.asym.pub)
-    # send msg.serialize()
-    return
-
-def send_msg(content: str):
-    if Keys.sym_key == None:
-        # print "connecting to server..."
-        initiate_handshake()
-        return
-
-    encrypted_content = RSA.encrypt(content.encode(), Keys.asym.pub)
-    msg = Message(MessageType.NORMAL, encrypted_content)
-    # send msg.serialize()
-    return
-
-def proccess_income_msg(msg_bytes: bytes):
-    msg = Message.deserialize(msg_bytes)
-    try:
-        match msg.type:
-            case MessageType.ASK_FOR_PUB_KEY:
-                initiate_handshake()
-                return
-            case MessageType.PUB_KEY_EXCHANGE:
-                Keys.srv_pub_key = msg.content
-                return
-            case MessageType.SYM_KEY_EXCHANGE:
-                Keys.sym_key = RSA.verify_and_extract(RSA.decrypt(msg_bytes, Keys.asym.pvt), Keys.srv_pub_key)
-                return
-            case MessageType.NORMAL:
-                content = AES.decrypt(msg_bytes, Keys.sym_key)
-                # show
-                return
-    except:
-        initiate_handshake()
-
-
-
-# >> o tamanho da mensagem passada tem que ser multiplo de 128 (AES). essa função "enche linguiça"
-def fill_msg_length(msg):
-    length = len(msg)
-    fill = 128 - (length % 128)
-    return msg + ("\x00".encode() * fill)
-
-## >> implementação da encriptação; vetor de inicialização é passado no começo da mensagem
-def encrypt(msg):
-    iv = os.urandom(IV_SIZE)
-    cipher = Cipher(algorithms.AES(KEY), modes.CBC(iv))
-    encryptor = cipher.encryptor()
-    encrypted_msg = encryptor.update(fill_msg_length(msg.encode())) + encryptor.finalize()
-    return iv + encrypted_msg
-
-# >> implementação da decriptação; pega o vetor de inicialização no começo da mensagem
-def decrypt(chunk):                        
-    iv = chunk[0:IV_SIZE]
-    encrypted_msg = chunk[IV_SIZE:]
-    cipher = Cipher(algorithms.AES(KEY), modes.CBC(iv))
-    decryptor = cipher.decryptor()
-    decrypted_msg = decryptor.update(encrypted_msg) + decryptor.finalize()
-    return decrypted_msg
 
 class Server(threading.Thread):
-    def initialise(self, receive):
+    __CLIENT = None
+
+    def initialise(self, receive, client):
         self.receive = receive
+        self.__CLIENT = client
 
     def run(self):
         lis = []
@@ -102,7 +34,34 @@ class Server(threading.Thread):
                     s = item.recv(1024)
                     if s != '':
                         chunk = s
-                        print(decrypt(chunk).decode() + '\n>>', end='')
+                        
+                        # >>
+
+                        msg = Message.deserialize(chunk)
+                        try:
+                            keys = self.__CLIENT.Keys
+                            match msg.type:
+                                case MessageType.ASK_FOR_PUB_KEY:
+                                    print('WARN: Server asked for pub key')
+                                    self.__CLIENT.initiate_handshake()
+                                    continue
+                                case MessageType.PUB_KEY_EXCHANGE:
+                                    keys.srv_pub_key = RSA.deserialize_pub_key(msg.content)
+                                    continue
+                                case MessageType.SYM_KEY_EXCHANGE:
+                                    keys.sym_key = RSA.decrypt(RSA.verify_and_extract(msg.content, keys.srv_pub_key), keys.asym.pvt)
+                                    continue
+                                case MessageType.NORMAL:
+                                    content = AES.decrypt(msg.content, keys.sym_key)
+                                    print(content.decode() + '\n>>', end='')
+                                    continue
+                        except Exception as e:
+                            # self.__CLIENT.initiate_handshake()
+                            print('exception!')
+                            print(e)
+                            return
+
+                        # <<
 
                 except:
                     traceback.print_exc(file=sys.stdout)
@@ -110,6 +69,37 @@ class Server(threading.Thread):
 
 
 class Client(threading.Thread):
+    __HOST = None
+    __PORT = None
+
+    # >>
+
+    class Keys:
+        asym = RSA.gen_keys()
+        sym_key = None
+        srv_pub_key = None
+
+    def initiate_handshake(self) -> None:
+        '''To be ran at startup; sends the pub key to the server, initiating the handshake'''
+        print('Initiating handshake with the server')
+        msg = Message(MessageType.PUB_KEY_EXCHANGE, self.Keys.asym.serialized_pub())
+        self.client(self.__HOST, self.__PORT, msg.serialize())
+        return
+
+    def send_msg(self, content: str) -> None:
+        '''Encrypts a regular message using AES, hashes it and sends it to the server'''
+        if self.Keys.sym_key == None:
+            print("reconnecting to server...")
+            self.initiate_handshake()
+            return
+
+        encrypted_content = AES.encrypt(content.encode(), self.Keys.sym_key)
+        msg = Message(MessageType.NORMAL, encrypted_content)
+        self.client(self.__HOST, self.__PORT, msg.serialize())
+        return
+
+    # <<
+
     def connect(self, host, port):
         self.sock.connect((host, port))
 
@@ -121,24 +111,25 @@ class Client(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         try:
-            host = input("Enter the server IP \n>>")
-            port = int(input("Enter the server Destination Port\n>>"))
+            self.__HOST = input("Enter the server IP \n>>")
+            self.__PORT = int(input("Enter the server Destination Port\n>>"))
         except EOFError:
             print("Error")
             return 1
 
         print("Connecting\n")
         s = ''
-        self.connect(host, port)
+        self.connect(self.__HOST, self.__PORT)
         print("Connected\n")
         user_name = input("Enter the User Name to be Used\n>>")
         receive = self.sock
         time.sleep(1)
         srv = Server()
-        srv.initialise(receive)
+        srv.initialise(receive, self)
         srv.daemon = True
         print("Starting service")
         srv.start()
+        self.initiate_handshake()
         while 1:
             # print "Waiting for message\n"
             msg = input('>>')
@@ -148,8 +139,7 @@ class Client(threading.Thread):
                 continue
             # print "Sending\n"
             msg = user_name + ': ' + msg
-            data = encrypt(msg)
-            self.client(host, port, data)
+            self.send_msg(msg)
         return (1)
 
 
