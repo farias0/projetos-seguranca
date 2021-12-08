@@ -19,6 +19,7 @@ class Message():
 
     def serialize(self) -> bytes:
         '''Returns a byte string version of this message with hashing, to be sent to a different node'''
+        # aparently asym crypto offers its own hashing, but for simplicity I'll use this method for all serialization
 
         byte_type = self.type.serialize()
         byte_content = self.__stringToBytes(self.content)
