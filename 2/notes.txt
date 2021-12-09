@@ -3,7 +3,7 @@
 
 - Assimétrico garante 1) confidencialidade, 2) autenticidade
 - ao criptografar com a chave pública do desinatário, garanto a confidenciabilidade, pois só ele vai conseguir ler
-- ao criptografar com a minha chave privada, garanto a autenticidade, pois só com a minha chave pública poderão ler
+- ao criptografar com a minha chave privada, garanto a autenticidade, pois só com a minha chave pública poderão lerb
 - ao fazer os dois processos, garanto ambos confidenciabilidade e autenticidade
 
 - integridade: hash (usar SHA-2, SHA-3 ou SHA-256)
