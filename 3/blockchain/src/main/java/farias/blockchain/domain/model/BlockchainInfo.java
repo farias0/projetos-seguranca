@@ -11,6 +11,7 @@ import lombok.Data;
 public class BlockchainInfo {
   private boolean isOn;
   private double difficulty;
+  private double chance;
   private Boolean isValid;
   private List<Block> blocks;
 }

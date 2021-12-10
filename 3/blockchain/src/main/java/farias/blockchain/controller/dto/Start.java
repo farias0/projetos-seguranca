@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class Start {
-  public double difficulty;
+  public int difficulty;
 }
