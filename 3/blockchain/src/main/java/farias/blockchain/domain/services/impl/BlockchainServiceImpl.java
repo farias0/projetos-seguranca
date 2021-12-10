@@ -1,6 +1,6 @@
-package farias.blockchain.domain.impl;
+package farias.blockchain.domain.services.impl;
 
-import farias.blockchain.domain.BlockchainService;
+import farias.blockchain.domain.services.BlockchainService;
 import farias.blockchain.domain.model.Block;
 import farias.blockchain.domain.model.BlockchainInfo;
 import java.util.ArrayList;

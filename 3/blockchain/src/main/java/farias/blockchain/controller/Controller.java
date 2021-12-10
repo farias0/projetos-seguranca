@@ -1,8 +1,8 @@
 package farias.blockchain.controller;
 
 import farias.blockchain.controller.dto.Start;
-import farias.blockchain.domain.BlockchainService;
-import farias.blockchain.domain.MinerService;
+import farias.blockchain.domain.services.BlockchainService;
+import farias.blockchain.domain.services.MinerService;
 import farias.blockchain.domain.model.BlockchainInfo;
 import farias.blockchain.domain.model.MinersInfo;
 import lombok.AllArgsConstructor;

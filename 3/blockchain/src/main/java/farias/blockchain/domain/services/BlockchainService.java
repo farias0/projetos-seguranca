@@ -1,4 +1,4 @@
-package farias.blockchain.domain;
+package farias.blockchain.domain.services;
 
 import farias.blockchain.domain.model.BlockchainInfo;
 

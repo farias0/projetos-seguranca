@@ -1,7 +1,7 @@
-package farias.blockchain.domain.impl;
+package farias.blockchain.domain.services.impl;
 
 import farias.blockchain.domain.Miner;
-import farias.blockchain.domain.MinerService;
+import farias.blockchain.domain.services.MinerService;
 import farias.blockchain.domain.model.MinersInfo;
 import java.util.ArrayList;
 import java.util.HashMap;

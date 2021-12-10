@@ -1,5 +1,6 @@
 package farias.blockchain.domain;
 
+import farias.blockchain.domain.services.BlockchainService;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
