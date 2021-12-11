@@ -8,5 +8,6 @@ public interface BlockchainService {
   void stop();
   BlockchainInfo info();
   void validateAndAddBlock(int minerId, byte[] solution);
+  void replaceBlock(Block block);
   byte[] getMaxHash();
 }

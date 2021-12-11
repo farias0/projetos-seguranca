@@ -2,6 +2,7 @@ package farias.blockchain.controller;
 
 import farias.blockchain.controller.dto.General;
 import farias.blockchain.controller.dto.Start;
+import farias.blockchain.domain.model.Block;
 import farias.blockchain.domain.services.BlockchainService;
 import farias.blockchain.domain.services.MinerService;
 import farias.blockchain.domain.model.BlockchainInfo;
@@ -62,10 +63,13 @@ public class Controller {
 
   @PutMapping("/blocks/{id}")
   @ApiOperation("Alterar os dados de um bloco através do seu ID")
-  public ResponseEntity<Void> putBlock(@PathVariable int id) {
+  public ResponseEntity<General> putBlock(@PathVariable int id, @RequestBody Block block) {
     log.info("putBlock id={}", id);
 
-    return ResponseEntity.ok(null);
+    block.setId(id);
+    blockchainService.replaceBlock(block);
+
+    return ResponseEntity.ok(General.builder().message("Block replaced").build());
   }
 
   @PostMapping("/miner")

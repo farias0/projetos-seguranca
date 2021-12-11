@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
@@ -117,6 +118,15 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     chain.add(newBlock);
     log.info("Added new block from miner={}", minerId);
+  }
+
+  @Override
+  public void replaceBlock(Block block) {
+    try {
+      chain.set(block.getId(), block);
+    } catch (IndexOutOfBoundsException ex) {
+      throw new NoSuchElementException("Block doesn't exist");
+    }
   }
 
   @Override
