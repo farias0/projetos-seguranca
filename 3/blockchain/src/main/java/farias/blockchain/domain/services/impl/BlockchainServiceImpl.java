@@ -122,11 +122,16 @@ public class BlockchainServiceImpl implements BlockchainService {
 
   @Override
   public void replaceBlock(Block block) {
-    try {
-      chain.set(block.getId(), block);
-    } catch (NullPointerException ex) {
-      throw new NoSuchElementException("Block doesn't exist");
+    var chainSize = chain != null ? chain.size() : 0; // lazy way to deal with this
+
+    for (var i=0; i<chainSize; i++) {
+      if (chain.get(i).getId() == block.getId()) {
+        chain.set(i, block);
+        return;
+      }
     }
+
+    throw new NoSuchElementException("Block doesn't exist");
   }
 
   @Override

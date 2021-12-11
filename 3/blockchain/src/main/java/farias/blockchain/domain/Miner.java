@@ -58,7 +58,7 @@ public class Miner implements Runnable {
       if (hashesCount % 1000 == 0) {
         var passRatio = (double) passCount/(failCount + passCount);
         log.info("miner {}: passed={}, failed={}, ratio={}", id, passCount, failCount, passRatio);
-        Thread.sleep(2000); // TODO deal with this exception
+        Thread.sleep(2000); // TODO deal gracefully with this being interrupted
         hashesCount = 0;
       }
 
