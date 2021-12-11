@@ -1,5 +1,6 @@
 package farias.blockchain.domain;
 
+import farias.blockchain.domain.services.BlockchainService;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,7 +48,7 @@ public class Miner implements Runnable {
 
       if (comparison <= 0) {
         passCount++;
-        // TODO
+        SpringContext.getBean(BlockchainService.class).validateAndAddBlock(id, currentTestValue.toByteArray());
       } else {
         failCount++;
       }

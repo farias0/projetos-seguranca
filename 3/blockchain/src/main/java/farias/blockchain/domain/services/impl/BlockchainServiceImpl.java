@@ -4,7 +4,13 @@ import farias.blockchain.domain.services.BlockchainService;
 import farias.blockchain.domain.model.Block;
 import farias.blockchain.domain.model.BlockchainInfo;
 import farias.blockchain.domain.services.MinerService;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -33,7 +39,7 @@ public class BlockchainServiceImpl implements BlockchainService {
         .isOn(isOn())
         .difficulty(difficulty)
         .chance(calculateChance(difficulty))
-        .isValid(isValid(-1))
+        .isValid(isValid())
         .blocks(chain)
         .build();
   }
@@ -45,6 +51,7 @@ public class BlockchainServiceImpl implements BlockchainService {
   @Override
   public void start(int difficulty) {
     chain = new ArrayList<>();
+    chain.add(Block.getGenesis());
     this.difficulty = difficulty;
     this.maxHash = maxHashCalculator(this.difficulty);
 
@@ -62,32 +69,54 @@ public class BlockchainServiceImpl implements BlockchainService {
     log.info("blockchain cleared");
   }
 
-  private boolean isValid(int blocksBackwards) {
+  private boolean isValid() {
     if (!isOn()) {
       throw new IllegalStateException(); // TODO create a BlockchainOffException
     }
 
-    int upUntil;
-    if (blocksBackwards > 0) {
-      upUntil = chain.size() - 1 - blocksBackwards;
-    } else if (blocksBackwards == -1) {
-      upUntil = 0;
-    } else {
-      throw new IllegalArgumentException();
-    }
+    var digester = getDigester();
 
-    for (var currentIndex = chain.size() - 1; currentIndex >= upUntil; currentIndex-- ) {
-      // hasheia o bloco
-      // compara com o hash no proximo bloco
+    for (var currentIndex = chain.size() - 1; currentIndex >= 1; currentIndex-- ) {
+      var currentBlock = chain.get(currentIndex);
+      var previousBlock = chain.get(currentIndex-1);
+      var previousBlockHash = digester.digest(previousBlock.toString().getBytes());
 
+      if (!Arrays.equals(currentBlock.getPreviousBlockHash(), previousBlockHash)) {
+        return false;
+      }
     }
 
     return true;
   }
 
-  @Override
-  public void validateAndAddBlock() {
+  private MessageDigest getDigester() {
+    try {
+      return MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException("Not gonna happen ¯\\_(ツ)_/¯");
+    }
+  }
 
+  @Override
+  public void validateAndAddBlock(int minerId, byte[] solution) {
+    var digester = getDigester();
+    var solutionHash = digester.digest(solution);
+
+    if (new BigInteger(1, solutionHash).compareTo(new BigInteger(1, maxHash)) > 0) {
+      throw new IllegalStateException("Failed validation"); // TODO create validation exception
+    }
+
+    var previousBlock = chain.get(chain.size() - 1);
+
+    var newBlock = Block.builder()
+        .id(previousBlock.getId() + 1)
+        .previousBlockHash(digester.digest(previousBlock.toString().getBytes(StandardCharsets.UTF_8)))
+        .minerId(minerId)
+        .dateTime(LocalDateTime.now())
+        .build();
+
+    chain.add(newBlock);
+    log.info("Added new block from miner={}", minerId);
   }
 
   @Override
