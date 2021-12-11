@@ -5,7 +5,6 @@ import farias.blockchain.domain.model.Block;
 import farias.blockchain.domain.model.BlockchainInfo;
 import farias.blockchain.domain.services.MinerService;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -80,7 +79,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     var newBlock = Block.builder()
         .id(previousBlock.getId() + 1)
         .previousBlockHash(
-            digester.digest(previousBlock.toString().getBytes(StandardCharsets.UTF_8)))
+            digester.digest(previousBlock.toString().getBytes()))
         .minerId(minerId)
         .dateTime(LocalDateTime.now())
         .build();
