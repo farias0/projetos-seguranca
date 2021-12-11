@@ -1,4 +1,4 @@
-package farias.blockchain.controller;
+package farias.blockchain;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

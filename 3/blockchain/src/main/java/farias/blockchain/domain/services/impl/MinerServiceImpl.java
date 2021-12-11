@@ -6,6 +6,7 @@ import farias.blockchain.domain.services.MinerService;
 import farias.blockchain.domain.model.MinersInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class MinerServiceImpl implements MinerService {
         return;
       }
     }
-    throw new IllegalArgumentException("Miner not found");
+    throw new NoSuchElementException("Miner not found");
   }
 
   @Override

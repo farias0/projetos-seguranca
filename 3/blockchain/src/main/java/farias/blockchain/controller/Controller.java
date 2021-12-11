@@ -7,7 +7,6 @@ import farias.blockchain.domain.services.BlockchainService;
 import farias.blockchain.domain.services.MinerService;
 import farias.blockchain.domain.model.BlockchainInfo;
 import farias.blockchain.domain.model.MinersInfo;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;

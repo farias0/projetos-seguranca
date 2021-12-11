@@ -72,7 +72,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
   private boolean isValid() {
     if (!isOn()) {
-      throw new IllegalStateException(); // TODO create a BlockchainOffException
+      throw new IllegalStateException("Blockchain isn't initialized");
     }
 
     var digester = getDigester();
@@ -104,7 +104,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     var solutionHash = digester.digest(solution);
 
     if (new BigInteger(1, solutionHash).compareTo(new BigInteger(1, maxHash)) > 0) {
-      throw new IllegalStateException("Failed validation"); // TODO create validation exception
+      throw new IllegalStateException("Failed validation");
     }
 
     var previousBlock = chain.get(chain.size() - 1);
@@ -124,7 +124,7 @@ public class BlockchainServiceImpl implements BlockchainService {
   public void replaceBlock(Block block) {
     try {
       chain.set(block.getId(), block);
-    } catch (IndexOutOfBoundsException ex) {
+    } catch (NullPointerException ex) {
       throw new NoSuchElementException("Block doesn't exist");
     }
   }
