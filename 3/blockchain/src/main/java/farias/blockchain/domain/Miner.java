@@ -12,19 +12,25 @@ public class Miner implements Runnable {
   private final MessageDigest digest = MessageDigest.getInstance("SHA-256"); // NOT THREAD SAFE! use one per miner
   private BigInteger currentTestValue = BigInteger.ZERO; // initial test value
   private final BigInteger maxHash;
+  private final int id; // we're keeping this id in two different places. should fix this
 
   private int hashesCount = 0;
   private int passCount = 0;
   private int failCount = 0;
 
-  private Miner(byte[] maxHashAccepted) throws NoSuchAlgorithmException {
+  private Miner(int id, byte[] maxHashAccepted) throws NoSuchAlgorithmException {
+    this.id = id;
     this.maxHash = new BigInteger(1, maxHashAccepted);
   }
 
+  public int getId() {
+    return this.id;
+  }
+
   // created to avoid the passing the constructor's "throws" up
-  public static Thread createThread(byte[] maxHashAccepted) {
+  public static Thread createThread(int id, byte[] maxHashAccepted) {
     try {
-      return new Thread(new Miner(maxHashAccepted));
+      return new Thread(new Miner(id, maxHashAccepted));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException("This will never happen ¯\\_(ツ)_/¯");
     }
@@ -50,7 +56,7 @@ public class Miner implements Runnable {
 
       if (hashesCount % 1000 == 0) {
         var passRatio = (double) passCount/(failCount + passCount);
-        log.info("REPORT: passed={}, failed={}, ratio={}", passCount, failCount, passRatio);
+        log.info("miner {}: passed={}, failed={}, ratio={}", id, passCount, failCount, passRatio);
         Thread.sleep(2000); // TODO deal with this exception
         hashesCount = 0;
       }

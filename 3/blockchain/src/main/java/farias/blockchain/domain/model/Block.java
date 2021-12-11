@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Block {
   private int id;
-  private String previousHash;
-  private String data; // for testing
+  private String previousBlockHash;
+  // timestamp
+  private String data;
 }

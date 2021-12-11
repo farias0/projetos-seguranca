@@ -77,6 +77,8 @@ public class BlockchainServiceImpl implements BlockchainService {
     }
 
     for (var currentIndex = chain.size() - 1; currentIndex >= upUntil; currentIndex-- ) {
+      // hasheia o bloco
+      // compara com o hash no proximo bloco
 
     }
 
@@ -130,6 +132,6 @@ public class BlockchainServiceImpl implements BlockchainService {
     }
 
     private static double calculateChance(int difficulty) {
-      return  1/(Math.pow(2, difficulty));
+      return 1/(Math.pow(2, difficulty));
     }
 }

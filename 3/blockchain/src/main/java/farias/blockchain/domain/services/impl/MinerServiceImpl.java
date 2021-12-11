@@ -26,7 +26,7 @@ public class MinerServiceImpl implements MinerService {
   @Override
   public void startMiner() throws InterruptedException {
     var id = ++lastId;
-    var thread = Miner.createThread(blockchainService.getMaxHash());
+    var thread = Miner.createThread(id, blockchainService.getMaxHash());
     thread.start();
 
     minerMap.put(id, thread);
