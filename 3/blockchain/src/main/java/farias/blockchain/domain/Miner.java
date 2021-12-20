@@ -14,10 +14,11 @@ public class Miner implements Runnable {
   private BigInteger currentTestValue = BigInteger.ZERO; // initial test value
   private final BigInteger maxHash;
   private final int id; // we're keeping this id in two different places. should fix this
+  private long startTime;
 
-  private int hashesCount = 0;
-  private int passCount = 0;
-  private int failCount = 0;
+  private BigInteger hashesCount = BigInteger.ZERO;
+  private BigInteger passCount = BigInteger.ZERO;
+  private BigInteger failCount = BigInteger.ZERO;
 
   private Miner(int id, byte[] maxHashAccepted) throws NoSuchAlgorithmException {
     this.id = id;
@@ -40,6 +41,8 @@ public class Miner implements Runnable {
   @SneakyThrows
   @Override
   public void run() {
+    startTime = System.currentTimeMillis();
+
     while (true) {
       var hash = digest.digest(currentTestValue.toByteArray());
       var intHash = new BigInteger(1, hash);
@@ -47,19 +50,21 @@ public class Miner implements Runnable {
       int comparison = intHash.compareTo(maxHash);
 
       if (comparison <= 0) {
-        passCount++;
+        passCount = passCount.add(BigInteger.ONE);
         SpringContext.getBean(BlockchainService.class).validateAndAddBlock(id, currentTestValue.toByteArray());
       } else {
-        failCount++;
+        failCount = failCount.add(BigInteger.ONE);
       }
 
-      hashesCount++;
+      // hashesCount++;
 
-      if (hashesCount % 1000 == 0) {
-        var passRatio = (double) passCount/(failCount + passCount);
-        log.info("miner {}: passed={}, failed={}, ratio={}", id, passCount, failCount, passRatio);
+      if (msPassed() >= 300000) {
+        var total = passCount.add(failCount);
+        //var passRatio = new BigDecimal(passCount).divide(new BigDecimal(total));
+        log.info("miner {}: passed={}, total={}", id, passCount, total);
         Thread.sleep(2000); // TODO deal gracefully with this being interrupted
-        hashesCount = 0;
+        // hashesCount = 0;
+        return;
       }
 
       // Thread.sleep(1000);
@@ -70,5 +75,10 @@ public class Miner implements Runnable {
         return;
       }
     }
+  }
+
+  private long msPassed() {
+    var now = System.currentTimeMillis();
+    return now - startTime;
   }
 }

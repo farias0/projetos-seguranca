@@ -139,8 +139,7 @@ public class BlockchainServiceImpl implements BlockchainService {
         byteArray[i] = (byte) 0b00000000;
       } else if (byteDifficulty >= 0) {
         int byteEasiness = 8 - byteDifficulty; // 0 to 7
-        byteArray[i] = (byte) (Math.pow(2, byteEasiness)
-            - 1); // 0 to 255, the bigger the difficulty, the smaller the byte
+        byteArray[i] = (byte) (Math.pow(2, byteEasiness) - 1); // 0 to 255, the bigger the difficulty, the smaller the byte
       } else { // it means from now on every byte is just 1's
         byteArray[i] = (byte) 0b11111111;
       }
